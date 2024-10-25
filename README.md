@@ -1,42 +1,45 @@
-# desensitization
+# Blur
 
-基于Java反射api、简单易用、支持任意数据结构的数据脱敏库，包含但不限于以下类型的数据脱敏
+Blur is a Java library for masking and obfuscating sensitive data in any data structure. 
+It is designed to be flexible and easy to use, and supports the following types of data blurring:
 
-* **邮箱**
-* **手机号码**
-* **中文名称**
-* **身份证号码**
-* **银行卡号码**
-* **密码**
-* **级联脱敏**
-* **自定义注解脱敏**
+* **String**
+* **Name**
+* **Password**
+* **Email Address**
+* **Phone Number**
+* **ID Card Number**
+* **Bank Card Number**
+* **Cascading Blurring**
+* **Custom Annotation-Based Blurring**
 
-# 用法
-## JDK版本
-desensitization是基于JDK21开发的，JDK1.8及以上版本请参考该[使用指南](https://github.com/allurx/desensitization/tree/v2.4.6)
+# Usage
 
-## maven依赖
+## JDK Version
+
+Blur is built on JDK 21. For projects using JDK 1.8 or later, please refer to this [user guide](https://github.com/allurx/blur/tree/v2.4.6).
+
+## Maven Dependency
 
 ```xml
-
 <dependency>
-    <groupId>red.zyc</groupId>
-    <artifactId>desensitization</artifactId>
-    <version>3.0.0</version>
+    <groupId>io.allurx</groupId>
+    <artifactId>blur</artifactId>
+    <version>${latest version}</version>
 </dependency>
 ```
 
-## 例子
+## Example
 
-### 对象域值脱敏
+### Object Field Blurring
 
-下面是一个Child类，其中包含了一些敏感数据字段以及一些嵌套的敏感数据字段
+Below is an example of a `Person` class containing some sensitive data fields and nested sensitive data fields.
 
 ```java
-public class Child {
+public class Person {
 
-    @ChineseName
-    public String name = "小明";
+    @Name
+    public String name = "allurx";
 
     @PhoneNumber
     public String phoneNumber = "19962000001";
@@ -49,60 +52,57 @@ public class Child {
 
 }
 ```
-
-只需要在敏感数据字段上标记相应类型的敏感注解，例如`@ChineseName`、`@Password`等注解，
-如果这个数据字段是需要级联脱敏的对象，只需要在该字段上标注`@Cascade`注解，
-最后调用以下方法即可擦除对象中的所有敏感信息并返回一个新的Child对象。
+Simply annotate the sensitive data fields with the appropriate annotations like `@Name`, `@PhoneNumber`, `@Password`, etc. 
+If the field contains an object that requires cascading blurring, mark it with the `@Cascade` annotation. 
+Finally, to obfuscate all the sensitive information within the object and return a new instance, use the following:
 
 ```java
-var child = Sensitive.desensitize(new Child());
+var person = Blur.blur(new Person());
 ```
 
-### 值脱敏
+### Value Blurring
 
-可能你的敏感信息是一个字符串类型的值或者是一个`Collection`、`Array`、`Map`之类的值，同样擦除它们的敏感信息也很简单
+Blurring sensitive data in `String`, `Collection`, `Array`, or `Map` types is just as simple and easy.
 
 ```java
-void desensitize() {
+void blur() {
 
     // String
-    var v1 = Sensitive.desensitize("123456@qq.com", new AnnotatedTypeToken<@Email String>() {
+    var v1 = Blur.blur("123456@qq.com", new AnnotatedTypeToken<@Email String>() {
     });
-    assert "1*****@qq.com".equals(v1);
+    assertEquals("1*****@qq.com", v1);
 
     // Collection
-    var v2 = Sensitive.desensitize(Stream.of("123456@qq.com").collect(Collectors.toList()), new AnnotatedTypeToken<List<@Email String>>() {
+    var v2 = Blur.blur(Stream.of("123456@qq.com").collect(Collectors.toList()), new AnnotatedTypeToken<List<@Email String>>() {
     });
-    v2.forEach(s -> {
-        assert "1*****@qq.com".equals(s);
-    });
+    v2.forEach(s -> assertEquals("1*****@qq.com", s));
 
     // Array
-    var v3 = Sensitive.desensitize(new String[]{"123456@qq.com"}, new AnnotatedTypeToken<@Email String[]>() {
+    var v3 = Blur.blur(new String[]{"123456@qq.com"}, new AnnotatedTypeToken<@Email String[]>() {
     });
-    Arrays.stream(v3).forEach(s -> {
-        assert "1*****@qq.com".equals(s);
-    });
+    Arrays.stream(v3).forEach(s -> assertEquals("1*****@qq.com", s));
 
     // Map
-    var v4 = Sensitive.desensitize(Stream.of("张三").collect(Collectors.toMap(s -> s, s -> "123456@qq.com")), new AnnotatedTypeToken<Map<@ChineseName String, @Email String>>() {
+    var v4 = Blur.blur(Stream.of("allurx").collect(Collectors.toMap(s -> s, s -> "123456@qq.com")), new AnnotatedTypeToken<Map<@Name String, @Email String>>() {
     });
     v4.forEach((s1, s2) -> {
-        assert "张*".equals(s1);
-        assert "1*****@qq.com".equals(s2);
+        assertEquals("a*****", s1);
+        assertEquals("1*****@qq.com", s2);
     });
 }
 ```
-在上面的例子中我们只需要构造脱敏对象的`AnnotatedTypeToken`以便我们能够准确的捕获被脱敏对象的实际类型和相应的敏感注解。
-# 原理
+In this example, constructing the `AnnotatedTypeToken` for the blurred objects is necessary to accurately capture the actual type of the object being blurred along with the appropriate annotations.
 
-desensitization是基于[annotation-parser](https://github.com/allurx/annotation-parser)库来解析任意数据结构中自定义敏感注解的，详细信息可以查看该工程介绍。
+# How It Works
 
-# 扩展
+Blur uses [annotation-parser](https://github.com/allurx/annotation-parser) to parse custom blurring annotations across any data structure. 
+For more details, you can refer to the project documentation.
 
-如果你的应用是基于spring-boot搭建的，并且你不想在代码中每次都手动调用脱敏方法对数据进行脱敏处理，那么[desensitization-spring-boot](https://github.com/allurx/desensitization-spring-boot)
-这个starter可能会对你有很大的帮助，详细信息可以查看该工程介绍。
+# Extension
+
+If your application is built on Spring Boot and you prefer not to manually call blurring methods in your code, 
+the [blur-spring-boot](https://github.com/allurx/blur-spring-boot) library can be very helpful. You can find more information in the project documentation.
 
 # License
 
-[Apache License 2.0](https://github.com/allurx/desensitization/blob/master/LICENSE.txt)
+[Apache License 2.0](https://github.com/allurx/blur/blob/master/LICENSE.txt)

@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package io.allurx.blur.test.model;
+
+import io.allurx.blur.annotation.Password;
+
 /**
- * blur test module
- *
  * @author allurx
  */
-module io.allurx.blur.test {
-    opens io.allurx.blur.test;
-    opens io.allurx.blur.test.model;
-    requires org.junit.jupiter;
-    requires io.allurx.blur;
-    requires io.allurx.kit.base;
-    requires io.allurx.annotation.parser;
+public abstract class Parent {
+
+    @Password
+    public String password = "123456";
+
 }
