@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.allurx</groupId>
     <artifactId>blur</artifactId>
-    <version>3.0.0</version>
+    <version>4.0.0</version>
     <name>blur</name>
     <url>https://github.com/allurx/blur</url>
     <description>
-        A data masking framework that provides various methods for data anonymization to ensure privacy and
+        A data masking library that provides various methods for data anonymization to ensure privacy and
         compliance.
     </description>
 
