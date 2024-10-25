@@ -13,16 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.allurx.blur.annotation;
+
 /**
- * blur test module
+ * A condition that always returns true.
+ * <p>
+ * This class implements the {@link Condition} interface and is used when a condition
+ * should always be considered met, regardless of the input object.
  *
  * @author allurx
  */
-module io.allurx.blur.test {
-    opens io.allurx.blur.test;
-    opens io.allurx.blur.test.model;
-    requires org.junit.jupiter;
-    requires io.allurx.blur;
-    requires io.allurx.kit.base;
-    requires io.allurx.annotation.parser;
+public class AlwaysTrue implements Condition<Object> {
+
+    /**
+     * Default constructor
+     */
+    public AlwaysTrue() {
+    }
+
+    @Override
+    public boolean required(Object input) {
+        return true;
+    }
+
 }

@@ -3,20 +3,27 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>red.zyc</groupId>
-    <artifactId>desensitization</artifactId>
-    <version>3.0.0</version>
-    <name>desensitization</name>
-    <url>https://github.com/allurx/desensitization</url>
-    <description>Sensitive information erasure framework</description>
+    <groupId>io.allurx</groupId>
+    <artifactId>blur</artifactId>
+    <version>4.0.0</version>
+    <name>blur</name>
+    <url>https://github.com/allurx/blur</url>
+    <description>
+        A data masking library that provides various methods for data anonymization to ensure privacy and
+        compliance.
+    </description>
 
     <properties>
-        <annotation-parser.version>1.0.0</annotation-parser.version>
-        <junit-jupiter.version>5.9.3</junit-jupiter.version>
-        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
-        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
-        <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
-        <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
+        <annotation-parser.version>2.0.0</annotation-parser.version>
+        <junit-jupiter.version>5.11.0</junit-jupiter.version>
+        <maven.compiler.source.version>21</maven.compiler.source.version>
+        <maven.compiler.target.version>21</maven.compiler.target.version>
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+        <maven-javadoc-plugin.version>3.10.0</maven-javadoc-plugin.version>
+        <maven-gpg-plugin.version>3.2.5</maven-gpg-plugin.version>
+        <maven-central-publishing-plugin.version>0.5.0</maven-central-publishing-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -29,27 +36,27 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/allurx/desensitization</url>
-        <connection>scm:git:https://github.com/allurx/desensitization.git</connection>
-        <developerConnection>scm:git:https://github.com/allurx/desensitization.git</developerConnection>
+        <url>https://github.com/allurx/blur</url>
+        <connection>scm:git:https://github.com/allurx/blur.git</connection>
+        <developerConnection>scm:git:https://github.com/allurx/blur.git</developerConnection>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/allurx/desensitization/issues</url>
+        <url>https://github.com/allurx/blur/issues</url>
     </issueManagement>
 
     <developers>
         <developer>
-            <name>zyc</name>
+            <name>allurx</name>
             <email>allurx.zyc@gmail.com</email>
-            <url>https://www.zyc.red</url>
+            <url>https://www.allurx.io</url>
         </developer>
     </developers>
 
     <dependencies>
         <dependency>
-            <groupId>red.zyc</groupId>
+            <groupId>io.allurx</groupId>
             <artifactId>annotation-parser</artifactId>
             <version>${annotation-parser.version}</version>
         </dependency>
@@ -81,9 +88,14 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <source>${maven.compiler.source.version}</source>
+                    <target>${maven.compiler.target.version}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
             </plugin>
         </plugins>
     </build>
@@ -143,6 +155,15 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${maven-central-publishing-plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

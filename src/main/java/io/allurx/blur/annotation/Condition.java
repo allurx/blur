@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package io.allurx.blur.annotation;
+
+import io.allurx.annotation.parser.util.Singleton;
+
 /**
- * blur test module
+ * Defines a condition to determine if the input requires blurring.
  *
+ * @param <T> The type of the input
  * @author allurx
  */
-module io.allurx.blur.test {
-    opens io.allurx.blur.test;
-    opens io.allurx.blur.test.model;
-    requires org.junit.jupiter;
-    requires io.allurx.blur;
-    requires io.allurx.kit.base;
-    requires io.allurx.annotation.parser;
+@Singleton
+public interface Condition<T> {
+
+    /**
+     * Checks if the input needs to be blurred.
+     *
+     * @param input The input to evaluate
+     * @return {@code true} if blurring is required, {@code false} otherwise
+     */
+    boolean required(T input);
+
 }
