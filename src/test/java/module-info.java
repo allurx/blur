@@ -19,10 +19,10 @@
  * @author allurx
  */
 module io.allurx.blur.test {
-    opens io.allurx.blur.test;
-    opens io.allurx.blur.test.model;
     requires org.junit.jupiter;
     requires io.allurx.blur;
     requires io.allurx.kit.base;
     requires io.allurx.annotation.parser;
+    opens io.allurx.blur.test;
+    opens io.allurx.blur.test.model;
 }

@@ -27,8 +27,8 @@ import io.allurx.blur.annotation.PhoneNumber;
  */
 public class Mother extends Parent {
 
-    @Name(regexp = "妈")
-    public String name = "明明妈";
+    @Name
+    public String name = "mother";
 
     @PhoneNumber
     public String phoneNumber = "19962000003";

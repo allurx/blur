@@ -18,9 +18,9 @@ package io.allurx.blur.test.model;
 
 import io.allurx.annotation.parser.type.Cascade;
 import io.allurx.blur.annotation.BankCardNumber;
-import io.allurx.blur.annotation.Name;
 import io.allurx.blur.annotation.Email;
 import io.allurx.blur.annotation.IdCardNumber;
+import io.allurx.blur.annotation.Name;
 import io.allurx.blur.annotation.Password;
 import io.allurx.blur.annotation.PhoneNumber;
 
@@ -33,8 +33,8 @@ import java.util.stream.Stream;
  */
 public class Child<T extends List<@Email String>> {
 
-    @Name(placeholder = 'x')
-    public String name = "小明";
+    @Name(placeholder = '#')
+    public String name = "allurx";
 
     @PhoneNumber
     public String phoneNumber = "19962000001";

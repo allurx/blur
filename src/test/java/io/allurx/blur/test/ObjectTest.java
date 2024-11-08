@@ -36,11 +36,12 @@ class ObjectTest {
 
     @Test
     void blur() {
+
         var before = new Child<>();
         var after = Blur.blur(before);
 
         // Validate the blurred fields of the Child object
-        assertEquals("小x", after.name);
+        assertEquals("a#####", after.name);
         assertEquals("199****0001", after.phoneNumber);
         assertEquals("321181********6000", after.idCardNumber);
         assertEquals("*********", after.password);
@@ -50,8 +51,8 @@ class ObjectTest {
         assertEquals("3*****@qq.com", after.emails.get(2));
 
         // Validate the blurred fields of the Child's Father
-        var father = (Father) after.parents.get(0);
-        assertEquals("明明*", father.name);
+        var father = (Father) after.parents.getFirst();
+        assertEquals("f*****", father.name);
         assertEquals("199****0002", father.phoneNumber);
         assertEquals("4*****@qq.com", father.email);
         assertEquals("321181********6001", father.idCardNumber);
@@ -60,7 +61,7 @@ class ObjectTest {
 
         // Validate the blurred fields of the Child's Mother
         var mother = (Mother) after.parents.get(1);
-        assertEquals("明明*", mother.name);
+        assertEquals("m*****", mother.name);
         assertEquals("199****0003", mother.phoneNumber);
         assertEquals("5*****@qq.com", mother.email);
         assertEquals("321181********6002", mother.idCardNumber);

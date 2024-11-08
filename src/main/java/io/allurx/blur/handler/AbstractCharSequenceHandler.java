@@ -151,7 +151,7 @@ public abstract class AbstractCharSequenceHandler<T extends CharSequence, A exte
         if (startOffset < 0 ||
                 endOffset < 0 ||
                 startOffset + endOffset > input.length()) {
-            throw new IllegalArgumentException(String.format("startOffset: %s, endOffset: %s, input: %s", startOffset, endOffset, input));
+            throw new IllegalArgumentException("startOffset: %s, endOffset: %s, input: %s".formatted(startOffset, endOffset, input));
         }
     }
 

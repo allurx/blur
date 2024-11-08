@@ -37,6 +37,7 @@ class MapTest {
 
     @Test
     void blur() {
+
         // Create a map with integer keys and sensitive string values
         var before = IntStream.range(0, 10)
                 .boxed()
