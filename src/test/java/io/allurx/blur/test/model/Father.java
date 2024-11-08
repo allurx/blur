@@ -17,9 +17,9 @@
 package io.allurx.blur.test.model;
 
 import io.allurx.blur.annotation.BankCardNumber;
-import io.allurx.blur.annotation.Name;
 import io.allurx.blur.annotation.Email;
 import io.allurx.blur.annotation.IdCardNumber;
+import io.allurx.blur.annotation.Name;
 import io.allurx.blur.annotation.PhoneNumber;
 
 /**
@@ -27,8 +27,8 @@ import io.allurx.blur.annotation.PhoneNumber;
  */
 public class Father extends Parent {
 
-    @Name(regexp = "爸")
-    public String name = "明明爸";
+    @Name
+    public String name = "father";
 
     @PhoneNumber
     public String phoneNumber = "19962000002";

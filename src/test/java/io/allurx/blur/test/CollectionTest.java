@@ -37,6 +37,7 @@ class CollectionTest {
 
     @Test
     void blur() {
+
         // Create a list containing sensitive strings
         var before = IntStream.range(0, 10)
                 .mapToObj(value -> "123456")

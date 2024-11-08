@@ -35,6 +35,7 @@ class ArrayTest {
 
     @Test
     void blur() {
+
         // Initialize an array with sensitive strings
         var before = new String[]{"123456", "123456", "123456"};
 

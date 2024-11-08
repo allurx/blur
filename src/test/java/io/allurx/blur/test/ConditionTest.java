@@ -35,6 +35,7 @@ class ConditionTest {
 
     @Test
     void blur() {
+
         // Create an array with various string values including null and empty
         var before = new String[]{"", null, "123456"};
 

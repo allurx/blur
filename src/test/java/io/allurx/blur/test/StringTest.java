@@ -32,10 +32,16 @@ class StringTest {
 
     @Test
     void blur() {
+
+        // Define a sensitive string
         var before = "123456";
+
+        // Apply the blur method to the string
         var after = Blur.blur(before, new AnnotatedTypeToken<@Strings String>() {
         });
 
+        // Verify that the blurred string is masked
         Assertions.assertEquals("******", after);
     }
+
 }

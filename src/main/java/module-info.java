@@ -19,9 +19,9 @@
  * @author allurx
  */
 module io.allurx.blur {
+    requires io.allurx.kit.base;
+    requires io.allurx.annotation.parser;
     exports io.allurx.blur;
     exports io.allurx.blur.annotation;
     exports io.allurx.blur.handler;
-    requires io.allurx.kit.base;
-    requires io.allurx.annotation.parser;
 }
