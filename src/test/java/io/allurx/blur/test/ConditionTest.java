@@ -15,6 +15,7 @@
  */
 package io.allurx.blur.test;
 
+import io.allurx.annotation.parser.util.Singletons;
 import io.allurx.blur.Blur;
 import io.allurx.blur.annotation.Condition;
 import io.allurx.blur.annotation.Strings;
@@ -32,6 +33,32 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * @author allurx
  */
 class ConditionTest {
+
+    @Test
+    void reusesConditionAcrossBlurCalls() {
+        Singletons.remove(FirstCallCondition.class);
+        try {
+            var typeToken = new AnnotatedTypeToken<@Strings(condition = FirstCallCondition.class) String>() {
+            };
+
+            assertEquals("******", Blur.blur("123456", typeToken));
+            assertEquals("123456", Blur.blur("123456", typeToken));
+        } finally {
+            Singletons.remove(FirstCallCondition.class);
+        }
+    }
+
+    private static class FirstCallCondition implements Condition<String> {
+
+        private boolean firstCall = true;
+
+        @Override
+        public boolean required(String input) {
+            boolean required = firstCall;
+            firstCall = false;
+            return required;
+        }
+    }
 
     @Test
     void blur() {
