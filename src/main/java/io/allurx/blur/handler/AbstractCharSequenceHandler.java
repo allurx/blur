@@ -17,7 +17,7 @@
 package io.allurx.blur.handler;
 
 import io.allurx.annotation.parser.handler.AnnotationHandler;
-import io.allurx.annotation.parser.util.InstanceCreators;
+import io.allurx.annotation.parser.util.Instances;
 import io.allurx.blur.annotation.Condition;
 
 import java.lang.annotation.Annotation;
@@ -58,7 +58,7 @@ public abstract class AbstractCharSequenceHandler<T extends CharSequence, A exte
     public boolean required(T input, Class<? extends Condition<?>> conditionClass) {
         @SuppressWarnings("unchecked")
         Class<? extends Condition<T>> clazz = (Class<? extends Condition<T>>) conditionClass;
-        return InstanceCreators.find(clazz).create().required(input);
+        return Instances.create(clazz).required(input);
     }
 
     /**

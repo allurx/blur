@@ -17,7 +17,7 @@ It is designed to be flexible and easy to use, and supports the following types 
 
 ## JDK Version
 
-Blur is built on JDK 21. For projects using JDK 1.8 or later, please refer to this [user guide](https://github.com/allurx/blur/tree/v2.4.6).
+Blur requires JDK 25 or later. For projects using older JDK versions, see the [v2.4.6 user guide](https://github.com/allurx/blur/tree/v2.4.6) for the Java 8-compatible version.
 
 ## Maven Dependency
 
