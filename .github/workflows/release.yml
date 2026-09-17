@@ -1,0 +1,19 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: maven-central-release
+  cancel-in-progress: false
+  queue: max
+jobs:
+  release:
+    permissions:
+      contents: write
+      actions: read
+    uses: allurx/allurx-build/.github/workflows/maven-central-release.yml@main
+    secrets: inherit
+    with:
+      tag: ${{ github.ref_name }}
