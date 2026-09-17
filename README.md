@@ -21,13 +21,13 @@ Blur requires JDK 25 or later. For projects using older JDK versions, see the [v
 
 ## Maven Dependency
 
-```xml
-<dependency>
-    <groupId>io.allurx</groupId>
-    <artifactId>blur</artifactId>
-    <version>${latest version}</version>
-</dependency>
-```
+Replace `LATEST_VERSION` with the latest release listed on Maven Central:
+
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.allurx&lt;/groupId&gt;
+    &lt;artifactId&gt;blur&lt;/artifactId&gt;
+    &lt;version&gt;<a href="https://central.sonatype.com/artifact/io.allurx/blur">LATEST_VERSION</a>&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
 
 ## Example
 
@@ -102,6 +102,22 @@ For more details, you can refer to the project documentation.
 
 If your application is built on Spring Boot and you prefer not to manually call blurring methods in your code, 
 the [blur-spring-boot](https://github.com/allurx/blur-spring-boot) library can be very helpful. You can find more information in the project documentation.
+
+# Build
+
+Use JDK 25 or later and Maven 3.9.x. From the repository root, run:
+
+```sh
+mvn -B -ntp clean verify
+```
+
+To also build sources and Javadoc without signing:
+
+```sh
+mvn -B -ntp -Prelease "-Dgpg.skip=true" clean verify
+```
+
+CI and releases use [allurx-build](https://github.com/allurx/allurx-build).
 
 # License
 
