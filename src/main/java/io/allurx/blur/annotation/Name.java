@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation for marking names as sensitive.
- * The default blurring rule masks all characters except for the first one.
+ * The default blurring rule masks all UTF-16 {@code char} units except for the first one.
  *
  * @author allurx
  */
@@ -38,16 +38,20 @@ import java.lang.annotation.Target;
 public @interface Name {
 
     /**
-     * Specifies the starting offset of sensitive information in the original character sequence.
+     * Specifies the number of leading UTF-16 {@code char} units to retain.
+     * Ignored when {@link #regexp()} is not empty. Otherwise, this value must be nonnegative,
+     * and its sum with {@link #endOffset()} must not exceed the input length.
      *
-     * @return The starting position to blur, defaults to 1.
+     * @return The number of leading units to retain, defaults to 1.
      */
     int startOffset() default 1;
 
     /**
-     * Specifies the ending offset of sensitive information in the original character sequence.
+     * Specifies the number of trailing UTF-16 {@code char} units to retain.
+     * Ignored when {@link #regexp()} is not empty. Otherwise, this value must be nonnegative,
+     * and its sum with {@link #startOffset()} must not exceed the input length.
      *
-     * @return The ending position to blur, defaults to 0.
+     * @return The number of trailing units to retain, defaults to 0.
      */
     int endOffset() default 0;
 
@@ -60,6 +64,7 @@ public @interface Name {
 
     /**
      * Specifies the placeholder character to replace sensitive information.
+     * Replaces each selected UTF-16 {@code char} unit, preserving the input length.
      *
      * @return The placeholder character, defaults to '*'.
      */

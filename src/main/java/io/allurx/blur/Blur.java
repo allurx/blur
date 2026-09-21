@@ -20,8 +20,8 @@ import io.allurx.annotation.parser.type.Cascade;
 import io.allurx.kit.base.reflection.AnnotatedTypeToken;
 
 /**
- * This class provides functionality to blur sensitive information by masking the fields of objects,
- * ensuring the privacy and anonymity of the data.
+ * Entry point for annotation-based masking of values and object fields.
+ * Object traversal and copying follow the rules supported by {@link AnnotationParser}.
  *
  * @author allurx
  * @see AnnotatedTypeToken

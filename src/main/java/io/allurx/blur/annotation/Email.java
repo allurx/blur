@@ -27,8 +27,8 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation for marking email addresses as sensitive.
- * The default blurring rule masks all characters between the second character
- * and the '@' symbol.
+ * The default blurring rule masks all characters between the first character
+ * and the first '@' symbol.
  *
  * @author allurx
  */
@@ -39,16 +39,20 @@ import java.lang.annotation.Target;
 public @interface Email {
 
     /**
-     * Specifies the starting offset of sensitive information in the original character sequence.
+     * Specifies the number of leading UTF-16 {@code char} units to retain.
+     * Ignored when {@link #regexp()} is not empty. Otherwise, this value must be nonnegative,
+     * and its sum with {@link #endOffset()} must not exceed the input length.
      *
-     * @return The starting position to blur, defaults to 0.
+     * @return The number of leading units to retain, defaults to 0.
      */
     int startOffset() default 0;
 
     /**
-     * Specifies the ending offset of sensitive information in the original character sequence.
+     * Specifies the number of trailing UTF-16 {@code char} units to retain.
+     * Ignored when {@link #regexp()} is not empty. Otherwise, this value must be nonnegative,
+     * and its sum with {@link #startOffset()} must not exceed the input length.
      *
-     * @return The ending position to blur, defaults to 0.
+     * @return The number of trailing units to retain, defaults to 0.
      */
     int endOffset() default 0;
 
@@ -56,13 +60,17 @@ public @interface Email {
      * Returns a regular expression to match the sensitive part of the email.
      * If this is not empty, it will override the {@link #startOffset()} and
      * {@link #endOffset()} settings.
+     * <p>
+     * The default pattern anchors the prefix and stops at the first '@' without backtracking.
+     * The bounded lookbehind accommodates a leading surrogate pair.
      *
      * @return A regular expression to match the sensitive part of the email.
      */
-    String regexp() default "(?<=.).*(?=@)";
+    String regexp() default "(?<=\\A[^@]{1,2})[^@]*+(?=@)";
 
     /**
      * Specifies the placeholder character to replace sensitive information.
+     * Replaces each selected UTF-16 {@code char} unit, preserving the input length.
      *
      * @return The placeholder character, defaults to '*'.
      */

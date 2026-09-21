@@ -1,6 +1,6 @@
 # Blur
 
-Blur is a Java library for masking and obfuscating sensitive data in any data structure. 
+Blur is a Java library for annotation-based masking of sensitive data in strings, object fields, collections, arrays, and maps.
 It is designed to be flexible and easy to use, and supports the following types of data blurring:
 
 * **String**
@@ -54,7 +54,7 @@ public class Person {
 ```
 Simply annotate the sensitive data fields with the appropriate annotations like `@Name`, `@PhoneNumber`, `@Password`, etc. 
 If the field contains an object that requires cascading blurring, mark it with the `@Cascade` annotation. 
-Finally, to obfuscate all the sensitive information within the object and return a new instance, use the following:
+To apply the configured masking rules to the object's fields and return a new instance, use the following:
 
 ```java
 var person = Blur.blur(new Person());
@@ -93,9 +93,16 @@ void blur() {
 ```
 In this example, constructing the `AnnotatedTypeToken` for the blurred objects is necessary to accurately capture the actual type of the object being blurred along with the appropriate annotations.
 
+## Notes
+
+* A non-empty `regexp` overrides `startOffset` and `endOffset`. Each non-empty whole match is masked; capturing groups do not select a separate masking region. When `regexp` is empty, the offsets specify how many UTF-16 `char` units to preserve at the beginning and end. They must be non-negative and together must not exceed the input length.
+* Masking preserves the UTF-16 length of a string. A false `condition` or a regular expression with no match leaves the value unchanged. Invalid regular expressions or offsets used for masking raise an exception; failures do not fall back to the original value.
+* Custom `Condition` implementations are shared between calls and must be stateless or thread-safe.
+* Object traversal and copying follow [annotation-parser](https://github.com/allurx/annotation-parser). Inherited fields require `@Cascade(inherited = true)`; final and transient fields of ordinary classes are not processed. Supported container implementations and instance creation also follow that library's rules.
+
 # How It Works
 
-Blur uses [annotation-parser](https://github.com/allurx/annotation-parser) to parse custom blurring annotations across any data structure. 
+Blur uses [annotation-parser](https://github.com/allurx/annotation-parser) to parse masking annotations and traverse supported objects and containers.
 For more details, you can refer to the project documentation.
 
 # Extension

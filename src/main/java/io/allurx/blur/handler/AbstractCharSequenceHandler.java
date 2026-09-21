@@ -30,6 +30,9 @@ import java.util.stream.IntStream;
 /**
  * Base class for handling sensitive {@link CharSequence} annotations.
  * Provides useful methods for blurring sensitive data.
+ * <p>
+ * Masking replaces selected UTF-16 {@code char} units in a copy of the input,
+ * preserving its UTF-16 length. The input is not modified.
  *
  * @param <A> The type of the sensitive annotation
  * @param <T> The type of the object to be blurred
@@ -63,13 +66,23 @@ public abstract class AbstractCharSequenceHandler<T extends CharSequence, A exte
 
     /**
      * Blurs the input based on the provided regular expression or offsets.
+     * A non-empty regular expression takes precedence over both offsets and masks
+     * each non-empty whole match (group 0), regardless of any capturing groups.
+     * Matching uses the original input; no match leaves its content unchanged.
+     * <p>
+     * An empty regular expression masks the interval from {@code start}, inclusive,
+     * to {@code input.length() - end}, exclusive. Both offsets count UTF-16
+     * {@code char} units to preserve at the beginning and end of the input.
      *
      * @param input       The original character sequence object
      * @param regexp      The regular expression for matching
-     * @param start       The starting offset of sensitive information
-     * @param end         The ending offset of sensitive information
+     * @param start       The number of leading UTF-16 {@code char} units to preserve
+     * @param end         The number of trailing UTF-16 {@code char} units to preserve
      * @param placeholder The character to replace sensitive information
-     * @return A char array representing the blurred character sequence
+     * @return A new char array containing the blurred character sequence
+     * @throws IllegalArgumentException if {@code regexp} is empty and an offset is negative
+     *                                  or the offsets together exceed the input length
+     * @throws java.util.regex.PatternSyntaxException if {@code regexp} is not a valid regular expression
      */
     public final char[] blur(T input, String regexp, int start, int end, char placeholder) {
         return !regexp.isEmpty() ? blur(input, regexp, placeholder) : blur(input, start, end, placeholder);
@@ -86,11 +99,8 @@ public abstract class AbstractCharSequenceHandler<T extends CharSequence, A exte
     private char[] blur(T input, String regexp, char placeholder) {
         char[] chars = chars(input);
         Matcher matcher = PATTERN_CACHE.computeIfAbsent(regexp, s -> Pattern.compile(regexp)).matcher(input);
-        // Replace each character in the matched groups with the placeholder
         while (matcher.find()) {
-            // Skip empty strings
             if (!matcher.group().isEmpty()) {
-                // Replace each character in the matched group with the placeholder
                 replace(chars, matcher.start(), matcher.end(), placeholder);
             }
         }
@@ -101,8 +111,8 @@ public abstract class AbstractCharSequenceHandler<T extends CharSequence, A exte
      * Blurs the input based on specified start and end offsets.
      *
      * @param input       The original character sequence object
-     * @param start       The starting offset of sensitive information
-     * @param end         The ending offset of sensitive information
+     * @param start       The number of leading UTF-16 {@code char} units to preserve
+     * @param end         The number of trailing UTF-16 {@code char} units to preserve
      * @param placeholder The character to replace sensitive information
      * @return A char array representing the blurred character sequence
      */
@@ -142,17 +152,19 @@ public abstract class AbstractCharSequenceHandler<T extends CharSequence, A exte
     /**
      * Validates the legality of the start and end offsets.
      *
-     * @param startOffset The starting offset of sensitive information
-     * @param endOffset   The ending offset of sensitive information
+     * @param startOffset The number of leading UTF-16 {@code char} units to preserve
+     * @param endOffset   The number of trailing UTF-16 {@code char} units to preserve
      * @param input       The original character sequence
      * @throws IllegalArgumentException if offsets are invalid
      */
     private void check(int startOffset, int endOffset, T input) {
+        int length = input.length();
         if (startOffset < 0 ||
                 endOffset < 0 ||
-                startOffset + endOffset > input.length()) {
+                startOffset > length ||
+                endOffset > length - startOffset) {
             throw new IllegalArgumentException("startOffset: %s, endOffset: %s, inputLength: %s"
-                    .formatted(startOffset, endOffset, input.length()));
+                    .formatted(startOffset, endOffset, length));
         }
     }
 

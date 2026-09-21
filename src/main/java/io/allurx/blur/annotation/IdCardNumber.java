@@ -39,16 +39,20 @@ import java.lang.annotation.Target;
 public @interface IdCardNumber {
 
     /**
-     * Specifies the starting offset of sensitive information in the original character sequence.
+     * Specifies the number of leading UTF-16 {@code char} units to retain.
+     * Ignored when {@link #regexp()} is not empty. Otherwise, this value must be nonnegative,
+     * and its sum with {@link #endOffset()} must not exceed the input length.
      *
-     * @return The starting position to blur, defaults to 6.
+     * @return The number of leading units to retain, defaults to 6.
      */
     int startOffset() default 6;
 
     /**
-     * Specifies the ending offset of sensitive information in the original character sequence.
+     * Specifies the number of trailing UTF-16 {@code char} units to retain.
+     * Ignored when {@link #regexp()} is not empty. Otherwise, this value must be nonnegative,
+     * and its sum with {@link #startOffset()} must not exceed the input length.
      *
-     * @return The ending position to blur, defaults to 4.
+     * @return The number of trailing units to retain, defaults to 4.
      */
     int endOffset() default 4;
 
@@ -61,6 +65,7 @@ public @interface IdCardNumber {
 
     /**
      * Specifies the placeholder character to replace sensitive information.
+     * Replaces each selected UTF-16 {@code char} unit, preserving the input length.
      *
      * @return The placeholder character, defaults to '*'.
      */
