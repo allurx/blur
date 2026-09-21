@@ -144,4 +144,4 @@ CI and releases use [allurx-build](https://github.com/allurx/allurx-build).
 
 # License
 
-[Apache License 2.0](https://github.com/allurx/blur/blob/master/LICENSE.txt)
+[Apache License 2.0](LICENSE.txt)
