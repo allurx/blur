@@ -28,11 +28,8 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 /**
- * Base class for handling sensitive {@link CharSequence} annotations.
- * Provides useful methods for blurring sensitive data.
- * <p>
- * Masking replaces selected UTF-16 {@code char} units in a copy of the input,
- * preserving its UTF-16 length. The input is not modified.
+ * Base class for masking annotated {@link CharSequence}s.
+ * Offsets count Unicode code points, not grapheme clusters; output preserves UTF-16 length.
  *
  * @param <A> The type of the sensitive annotation
  * @param <T> The type of the object to be blurred
@@ -65,70 +62,45 @@ public abstract class AbstractCharSequenceHandler<T extends CharSequence, A exte
     }
 
     /**
-     * Blurs the input based on the provided regular expression or offsets.
-     * A non-empty regular expression takes precedence over both offsets and masks
-     * each non-empty whole match (group 0), regardless of any capturing groups.
-     * Matching uses the original input; no match leaves its content unchanged.
-     * <p>
-     * An empty regular expression masks the interval from {@code start}, inclusive,
-     * to {@code input.length() - end}, exclusive. Both offsets count UTF-16
-     * {@code char} units to preserve at the beginning and end of the input.
+     * Masks nonempty whole regex matches (group 0), ignoring offsets; an empty regex
+     * instead retains {@code start} leading and {@code end} trailing code points.
+     * Matching uses the original input and skips empty matches. Mask boundaries expand
+     * to cover surrogate pairs. With no matches, content is unchanged. The input is not modified.
      *
      * @param input       The original character sequence object
      * @param regexp      The regular expression for matching
-     * @param start       The number of leading UTF-16 {@code char} units to preserve
-     * @param end         The number of trailing UTF-16 {@code char} units to preserve
+     * @param start       The number of leading Unicode code points to preserve
+     * @param end         The number of trailing Unicode code points to preserve
      * @param placeholder The character to replace sensitive information
      * @return A new char array containing the blurred character sequence
      * @throws IllegalArgumentException if {@code regexp} is empty and an offset is negative
-     *                                  or the offsets together exceed the input length
+     *                                  or the offsets together exceed the input code point count
      * @throws java.util.regex.PatternSyntaxException if {@code regexp} is not a valid regular expression
      */
     public final char[] blur(T input, String regexp, int start, int end, char placeholder) {
         return !regexp.isEmpty() ? blur(input, regexp, placeholder) : blur(input, start, end, placeholder);
     }
 
-    /**
-     * Blurs the input based on the provided regular expression.
-     *
-     * @param input       The original character sequence object
-     * @param regexp      The regular expression for matching
-     * @param placeholder The character to replace sensitive information
-     * @return A char array representing the blurred character sequence
-     */
     private char[] blur(T input, String regexp, char placeholder) {
         char[] chars = chars(input);
         Matcher matcher = PATTERN_CACHE.computeIfAbsent(regexp, s -> Pattern.compile(regexp)).matcher(input);
         while (matcher.find()) {
-            if (!matcher.group().isEmpty()) {
-                replace(chars, matcher.start(), matcher.end(), placeholder);
+            if (matcher.start() != matcher.end()) {
+                replace(input, chars, matcher.start(), matcher.end(), placeholder);
             }
         }
         return chars;
     }
 
-    /**
-     * Blurs the input based on specified start and end offsets.
-     *
-     * @param input       The original character sequence object
-     * @param start       The number of leading UTF-16 {@code char} units to preserve
-     * @param end         The number of trailing UTF-16 {@code char} units to preserve
-     * @param placeholder The character to replace sensitive information
-     * @return A char array representing the blurred character sequence
-     */
     private char[] blur(T input, int start, int end, char placeholder) {
         check(start, end, input);
+        int from = Character.offsetByCodePoints(input, 0, start);
+        int to = Character.offsetByCodePoints(input, input.length(), -end);
         char[] chars = chars(input);
-        replace(chars, start, input.length() - end, placeholder);
+        replace(input, chars, from, to, placeholder);
         return chars;
     }
 
-    /**
-     * Converts the character sequence to a char array.
-     *
-     * @param input The original character sequence object
-     * @return A char array representing the characters in the sequence
-     */
     private char[] chars(T input) {
         char[] chars = new char[input.length()];
         IntStream.range(0, input.length()).forEach(i -> chars[i] = input.charAt(i));
@@ -136,35 +108,29 @@ public abstract class AbstractCharSequenceHandler<T extends CharSequence, A exte
     }
 
     /**
-     * Replaces sensitive information in the char array with a placeholder.
-     *
-     * @param chars       The char array corresponding to the character sequence
-     * @param start       The starting index of sensitive information
-     * @param end         The ending index of sensitive information
-     * @param placeholder The character used to replace sensitive characters
+     * Expands boundaries using the original input so earlier replacements cannot hide surrogate pairs.
      */
-    private void replace(char[] chars, int start, int end, char placeholder) {
+    private void replace(T input, char[] chars, int start, int end, char placeholder) {
+        if (start == end) return;
+        if (start > 0 && Character.isSurrogatePair(input.charAt(start - 1), input.charAt(start))) {
+            start--;
+        }
+        if (end < input.length() && Character.isSurrogatePair(input.charAt(end - 1), input.charAt(end))) {
+            end++;
+        }
         while (start < end) {
             chars[start++] = placeholder;
         }
     }
 
-    /**
-     * Validates the legality of the start and end offsets.
-     *
-     * @param startOffset The number of leading UTF-16 {@code char} units to preserve
-     * @param endOffset   The number of trailing UTF-16 {@code char} units to preserve
-     * @param input       The original character sequence
-     * @throws IllegalArgumentException if offsets are invalid
-     */
     private void check(int startOffset, int endOffset, T input) {
-        int length = input.length();
+        int codePointCount = Character.codePointCount(input, 0, input.length());
         if (startOffset < 0 ||
                 endOffset < 0 ||
-                startOffset > length ||
-                endOffset > length - startOffset) {
-            throw new IllegalArgumentException("startOffset: %s, endOffset: %s, inputLength: %s"
-                    .formatted(startOffset, endOffset, length));
+                startOffset > codePointCount ||
+                endOffset > codePointCount - startOffset) {
+            throw new IllegalArgumentException("startOffset: %s, endOffset: %s, inputCodePointCount: %s"
+                    .formatted(startOffset, endOffset, codePointCount));
         }
     }
 

@@ -1,5 +1,7 @@
 # Blur
 
+English | [简体中文](README.zh-CN.md)
+
 Blur is a Java library for annotation-based masking of sensitive data in strings, object fields, collections, arrays, and maps.
 It is designed to be flexible and easy to use, and supports the following types of data blurring:
 
@@ -95,10 +97,11 @@ In this example, constructing the `AnnotatedTypeToken` for the blurred objects i
 
 ## Notes
 
-* A non-empty `regexp` overrides `startOffset` and `endOffset`. Each non-empty whole match is masked; capturing groups do not select a separate masking region. When `regexp` is empty, the offsets specify how many UTF-16 `char` units to preserve at the beginning and end. They must be non-negative and together must not exceed the input length.
-* Masking preserves the UTF-16 length of a string. A false `condition` or a regular expression with no match leaves the value unchanged. Invalid regular expressions or offsets used for masking raise an exception; failures do not fall back to the original value.
-* Custom `Condition` implementations are shared between calls and must be stateless or thread-safe.
-* Object traversal and copying follow [annotation-parser](https://github.com/allurx/annotation-parser). Inherited fields require `@Cascade(inherited = true)`; final and transient fields of ordinary classes are not processed. Supported container implementations and instance creation also follow that library's rules.
+* `startOffset` and `endOffset` retain Unicode code points. They must be nonnegative and total at most the input's code point count. Existing UTF-16 offsets may need adjustment for supplementary characters.
+* Output preserves `String.length()`: `@Name` produces `𠮷田 → 𠮷*` and `张𠮷 → 张**`. Code points are not grapheme clusters; unpaired surrogates are not repaired.
+* A nonempty `regexp` overrides offsets. False conditions and unmatched patterns leave values unchanged; invalid patterns or offsets used for masking throw an exception. See [masking options](src/main/java/io/allurx/blur/annotation/Strings.java) for matching and placeholder rules.
+* Custom conditions are shared between calls and must be stateless or thread-safe.
+* Object traversal, container support, and instance creation follow [annotation-parser](https://github.com/allurx/annotation-parser). Inherited fields require `@Cascade(inherited = true)`; ordinary classes' final and transient fields are not masked.
 
 # How It Works
 
