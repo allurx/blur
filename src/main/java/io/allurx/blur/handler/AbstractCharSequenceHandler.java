@@ -28,8 +28,8 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 /**
- * Base class for handling sensitive {@link CharSequence} annotations.
- * Provides useful methods for blurring sensitive data.
+ * Base class for masking annotated {@link CharSequence}s.
+ * Offsets count Unicode code points, not grapheme clusters; output preserves UTF-16 length.
  *
  * @param <A> The type of the sensitive annotation
  * @param <T> The type of the object to be blurred
@@ -62,63 +62,45 @@ public abstract class AbstractCharSequenceHandler<T extends CharSequence, A exte
     }
 
     /**
-     * Blurs the input based on the provided regular expression or offsets.
+     * Masks nonempty whole regex matches (group 0), ignoring offsets; an empty regex
+     * instead retains {@code start} leading and {@code end} trailing code points.
+     * Matching uses the original input and skips empty matches. Mask boundaries expand
+     * to cover surrogate pairs. With no matches, content is unchanged. The input is not modified.
      *
      * @param input       The original character sequence object
      * @param regexp      The regular expression for matching
-     * @param start       The starting offset of sensitive information
-     * @param end         The ending offset of sensitive information
+     * @param start       The number of leading Unicode code points to preserve
+     * @param end         The number of trailing Unicode code points to preserve
      * @param placeholder The character to replace sensitive information
-     * @return A char array representing the blurred character sequence
+     * @return A new char array containing the blurred character sequence
+     * @throws IllegalArgumentException if {@code regexp} is empty and an offset is negative
+     *                                  or the offsets together exceed the input code point count
+     * @throws java.util.regex.PatternSyntaxException if {@code regexp} is not a valid regular expression
      */
     public final char[] blur(T input, String regexp, int start, int end, char placeholder) {
         return !regexp.isEmpty() ? blur(input, regexp, placeholder) : blur(input, start, end, placeholder);
     }
 
-    /**
-     * Blurs the input based on the provided regular expression.
-     *
-     * @param input       The original character sequence object
-     * @param regexp      The regular expression for matching
-     * @param placeholder The character to replace sensitive information
-     * @return A char array representing the blurred character sequence
-     */
     private char[] blur(T input, String regexp, char placeholder) {
         char[] chars = chars(input);
         Matcher matcher = PATTERN_CACHE.computeIfAbsent(regexp, s -> Pattern.compile(regexp)).matcher(input);
-        // Replace each character in the matched groups with the placeholder
         while (matcher.find()) {
-            // Skip empty strings
-            if (!matcher.group().isEmpty()) {
-                // Replace each character in the matched group with the placeholder
-                replace(chars, matcher.start(), matcher.end(), placeholder);
+            if (matcher.start() != matcher.end()) {
+                replace(input, chars, matcher.start(), matcher.end(), placeholder);
             }
         }
         return chars;
     }
 
-    /**
-     * Blurs the input based on specified start and end offsets.
-     *
-     * @param input       The original character sequence object
-     * @param start       The starting offset of sensitive information
-     * @param end         The ending offset of sensitive information
-     * @param placeholder The character to replace sensitive information
-     * @return A char array representing the blurred character sequence
-     */
     private char[] blur(T input, int start, int end, char placeholder) {
         check(start, end, input);
+        int from = Character.offsetByCodePoints(input, 0, start);
+        int to = Character.offsetByCodePoints(input, input.length(), -end);
         char[] chars = chars(input);
-        replace(chars, start, input.length() - end, placeholder);
+        replace(input, chars, from, to, placeholder);
         return chars;
     }
 
-    /**
-     * Converts the character sequence to a char array.
-     *
-     * @param input The original character sequence object
-     * @return A char array representing the characters in the sequence
-     */
     private char[] chars(T input) {
         char[] chars = new char[input.length()];
         IntStream.range(0, input.length()).forEach(i -> chars[i] = input.charAt(i));
@@ -126,32 +108,29 @@ public abstract class AbstractCharSequenceHandler<T extends CharSequence, A exte
     }
 
     /**
-     * Replaces sensitive information in the char array with a placeholder.
-     *
-     * @param chars       The char array corresponding to the character sequence
-     * @param start       The starting index of sensitive information
-     * @param end         The ending index of sensitive information
-     * @param placeholder The character used to replace sensitive characters
+     * Expands boundaries using the original input so earlier replacements cannot hide surrogate pairs.
      */
-    private void replace(char[] chars, int start, int end, char placeholder) {
+    private void replace(T input, char[] chars, int start, int end, char placeholder) {
+        if (start == end) return;
+        if (start > 0 && Character.isSurrogatePair(input.charAt(start - 1), input.charAt(start))) {
+            start--;
+        }
+        if (end < input.length() && Character.isSurrogatePair(input.charAt(end - 1), input.charAt(end))) {
+            end++;
+        }
         while (start < end) {
             chars[start++] = placeholder;
         }
     }
 
-    /**
-     * Validates the legality of the start and end offsets.
-     *
-     * @param startOffset The starting offset of sensitive information
-     * @param endOffset   The ending offset of sensitive information
-     * @param input       The original character sequence
-     * @throws IllegalArgumentException if offsets are invalid
-     */
     private void check(int startOffset, int endOffset, T input) {
+        int codePointCount = Character.codePointCount(input, 0, input.length());
         if (startOffset < 0 ||
                 endOffset < 0 ||
-                startOffset + endOffset > input.length()) {
-            throw new IllegalArgumentException("startOffset: %s, endOffset: %s, input: %s".formatted(startOffset, endOffset, input));
+                startOffset > codePointCount ||
+                endOffset > codePointCount - startOffset) {
+            throw new IllegalArgumentException("startOffset: %s, endOffset: %s, inputCodePointCount: %s"
+                    .formatted(startOffset, endOffset, codePointCount));
         }
     }
 

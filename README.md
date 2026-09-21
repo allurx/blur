@@ -1,6 +1,8 @@
 # Blur
 
-Blur is a Java library for masking and obfuscating sensitive data in any data structure. 
+English | [简体中文](README.zh-CN.md)
+
+Blur is a Java library for annotation-based masking of sensitive data in strings, object fields, collections, arrays, and maps.
 It is designed to be flexible and easy to use, and supports the following types of data blurring:
 
 * **String**
@@ -54,7 +56,7 @@ public class Person {
 ```
 Simply annotate the sensitive data fields with the appropriate annotations like `@Name`, `@PhoneNumber`, `@Password`, etc. 
 If the field contains an object that requires cascading blurring, mark it with the `@Cascade` annotation. 
-Finally, to obfuscate all the sensitive information within the object and return a new instance, use the following:
+To apply the configured masking rules to the object's fields and return a new instance, use the following:
 
 ```java
 var person = Blur.blur(new Person());
@@ -93,9 +95,30 @@ void blur() {
 ```
 In this example, constructing the `AnnotatedTypeToken` for the blurred objects is necessary to accurately capture the actual type of the object being blurred along with the appropriate annotations.
 
+## Notes
+
+* `startOffset` and `endOffset` retain Unicode code points. They must be nonnegative and total at most the input's code point count. Existing UTF-16 offsets may need adjustment for supplementary characters.
+* Output preserves `String.length()`: `@Name` produces `𠮷田 → 𠮷*` and `张𠮷 → 张**`. Code points are not grapheme clusters; unpaired surrogates are not repaired.
+* A nonempty `regexp` overrides offsets. False conditions and unmatched patterns leave values unchanged; invalid patterns or offsets used for masking throw an exception. See [masking options](src/main/java/io/allurx/blur/annotation/Strings.java) for matching and placeholder rules.
+* Custom conditions are shared between calls and must be stateless or thread-safe.
+* Object traversal, container support, and instance creation follow [annotation-parser](https://github.com/allurx/annotation-parser). Inherited fields require `@Cascade(inherited = true)`; ordinary classes' final and transient fields are not masked.
+
+### JPMS
+
+For JPMS applications, open packages containing private fields to the parser in `module-info.java`:
+
+```java
+module com.example.app {
+    requires io.allurx.blur;
+    opens com.example.model to io.allurx.annotation.parser;
+}
+```
+
+Replace the example module and model package names. Classpath applications do not need this configuration.
+
 # How It Works
 
-Blur uses [annotation-parser](https://github.com/allurx/annotation-parser) to parse custom blurring annotations across any data structure. 
+Blur uses [annotation-parser](https://github.com/allurx/annotation-parser) to parse masking annotations and traverse supported objects and containers.
 For more details, you can refer to the project documentation.
 
 # Extension
@@ -121,4 +144,4 @@ CI and releases use [allurx-build](https://github.com/allurx/allurx-build).
 
 # License
 
-[Apache License 2.0](https://github.com/allurx/blur/blob/master/LICENSE.txt)
+[Apache License 2.0](LICENSE.txt)

@@ -26,9 +26,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for marking email addresses as sensitive.
- * The default blurring rule masks all characters between the second character
- * and the '@' symbol.
+ * Masks email addresses between the first code point and the first '@' by default.
  *
  * @author allurx
  */
@@ -39,39 +37,44 @@ import java.lang.annotation.Target;
 public @interface Email {
 
     /**
-     * Specifies the starting offset of sensitive information in the original character sequence.
+     * Leading Unicode code points to retain; ignored for a nonempty {@link #regexp()}.
+     * Must be nonnegative, and the sum with {@link #endOffset()} must not exceed the input's code point count.
      *
-     * @return The starting position to blur, defaults to 0.
+     * @return the leading code point count
      */
     int startOffset() default 0;
 
     /**
-     * Specifies the ending offset of sensitive information in the original character sequence.
+     * Trailing Unicode code points to retain; ignored for a nonempty {@link #regexp()}.
+     * Must be nonnegative, and the sum with {@link #startOffset()} must not exceed the input's code point count.
      *
-     * @return The ending position to blur, defaults to 0.
+     * @return the trailing code point count
      */
     int endOffset() default 0;
 
     /**
-     * Returns a regular expression to match the sensitive part of the email.
-     * If this is not empty, it will override the {@link #startOffset()} and
-     * {@link #endOffset()} settings.
+     * A nonempty pattern overrides {@link #startOffset()} and {@link #endOffset()}.
+     * Masks whole matches; empty matches are ignored. Boundaries inside surrogate pairs
+     * expand outward to mask the entire pair.
+     * <p>
+     * The anchored, possessive default avoids repeated scanning and backtracking;
+     * its bounded lookbehind accommodates a leading surrogate pair.
      *
-     * @return A regular expression to match the sensitive part of the email.
+     * @return the masking pattern, or empty to use offsets
      */
-    String regexp() default "(?<=.).*(?=@)";
+    String regexp() default "(?<=\\A[^@]{1,2})[^@]*+(?=@)";
 
     /**
-     * Specifies the placeholder character to replace sensitive information.
+     * Replaces each selected UTF-16 {@code char}, preserving the input length.
      *
-     * @return The placeholder character, defaults to '*'.
+     * @return the replacement character
      */
     char placeholder() default '*';
 
     /**
-     * Specifies the condition under which the input should be blurred.
+     * Controls whether the input is masked.
      *
-     * @return The condition class, defaults to {@link AlwaysTrue}.
+     * @return the condition class
      */
     Class<? extends Condition<?>> condition() default AlwaysTrue.class;
 
