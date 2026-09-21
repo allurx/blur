@@ -103,6 +103,19 @@ In this example, constructing the `AnnotatedTypeToken` for the blurred objects i
 * Custom conditions are shared between calls and must be stateless or thread-safe.
 * Object traversal, container support, and instance creation follow [annotation-parser](https://github.com/allurx/annotation-parser). Inherited fields require `@Cascade(inherited = true)`; ordinary classes' final and transient fields are not masked.
 
+### JPMS
+
+For JPMS applications, open packages containing private fields to the parser in `module-info.java`:
+
+```java
+module com.example.app {
+    requires io.allurx.blur;
+    opens com.example.model to io.allurx.annotation.parser;
+}
+```
+
+Replace the example module and model package names. Classpath applications do not need this configuration.
+
 # How It Works
 
 Blur uses [annotation-parser](https://github.com/allurx/annotation-parser) to parse masking annotations and traverse supported objects and containers.

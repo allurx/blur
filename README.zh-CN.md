@@ -104,6 +104,19 @@ void blur() {
 * 自定义条件实例会在调用之间共享，必须无状态或保证线程安全。
 * 对象遍历、容器支持和实例创建遵循 [annotation-parser](https://github.com/allurx/annotation-parser) 的规则。处理继承字段需要 `@Cascade(inherited = true)`；普通类的 `final` 和 `transient` 字段不会脱敏。
 
+### JPMS
+
+使用 JPMS 时，在 `module-info.java` 中向解析器开放私有字段所在的包：
+
+```java
+module com.example.app {
+    requires io.allurx.blur;
+    opens com.example.model to io.allurx.annotation.parser;
+}
+```
+
+替换示例中的业务模块名和模型包名；普通 classpath 项目无需此配置。
+
 # 工作原理
 
 Blur 使用 [annotation-parser](https://github.com/allurx/annotation-parser) 解析脱敏注解，并遍历受支持的对象和容器。
