@@ -1,19 +1,36 @@
 name: Release
 on:
-  push:
-    tags: ['v*']
+    push:
+        tags: ["v*"]
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: 原有的附带注释发布 tag
+                required: true
+                type: string
+            recovery-run-id:
+                description: 保存原 bundle 的运行 ID
+                required: true
+                type: string
+            deployment-id:
+                description: 原 Central deployment ID，不执行新上传
+                required: true
+                type: string
 permissions:
-  contents: read
+    contents: read
 concurrency:
-  group: maven-central-release
-  cancel-in-progress: false
-  queue: max
+    group: maven-central-release
+    cancel-in-progress: false
+    # 发布请求保留排队，避免后来的请求替换尚未开始的版本。
+    queue: max
 jobs:
-  release:
-    permissions:
-      contents: write
-      actions: read
-    uses: allurx/allurx-build/.github/workflows/maven-central-release.yml@main
-    secrets: inherit
-    with:
-      tag: ${{ github.ref_name }}
+    publish:
+        permissions:
+            contents: write
+            actions: read
+        uses: allurx/allurx-build/.github/workflows/maven-central-publish.yml@71684ece317c5344be9f5dae18f2512c88bc56b1 # v1.0.0
+        secrets: inherit
+        with:
+            tag: ${{ inputs.tag || github.ref_name }}
+            recovery-run-id: ${{ inputs.recovery-run-id || '' }}
+            deployment-id: ${{ inputs.deployment-id || '' }}

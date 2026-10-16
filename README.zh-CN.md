@@ -140,7 +140,7 @@ mvn -B -ntp clean verify
 mvn -B -ntp -Prelease "-Dgpg.skip=true" clean verify
 ```
 
-CI 和发布流程使用 [allurx-build](https://github.com/allurx/allurx-build)。
+CI 和发布流程使用 [allurx-build](https://github.com/allurx/allurx-build)。依赖更新采用共享的 [Renovate 策略](https://github.com/allurx/allurx-build/blob/main/docs/dependency-updates.md)，目标分支为 `dev`。
 
 # 许可证
 
