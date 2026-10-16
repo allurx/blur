@@ -14,3 +14,68 @@ concurrency:
 jobs:
   verify:
     uses: allurx/allurx-build/.github/workflows/maven-ci.yml@main
+
+  dependabot-merge:
+    name: Merge routine Dependabot updates
+    needs: verify
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.base.ref == 'dev' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Read Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+      - name: Check automatic merge policy
+        id: policy
+        env:
+          DEPENDENCIES: ${{ steps.metadata.outputs.updated-dependencies-json }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from "node:fs";
+
+          const updates = JSON.parse(process.env.DEPENDENCIES);
+          const actionVersion = /^v?(0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/;
+          const mavenVersion = /^(0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))+(?:-(jre|android))?$/;
+          const eligible = updates.length > 0 && updates.every((update) => {
+              const { dependencyName, packageEcosystem, updateType, prevVersion, newVersion } = update;
+              if (!["maven", "github_actions"].includes(packageEcosystem)) return false;
+              if (dependencyName === "io.allurx:maven-parent" ||
+                  dependencyName === "allurx/allurx-build" ||
+                  dependencyName.startsWith("allurx/allurx-build/")) return false;
+
+              const pattern = packageEcosystem === "maven" ? mavenVersion : actionVersion;
+              const previous = pattern.exec(prevVersion);
+              const next = pattern.exec(newVersion);
+              if (!previous || !next || previous[1] !== next[1]) return false;
+              if (previous[2] || next[2]) {
+                  if (dependencyName !== "com.google.guava:guava" || previous[2] !== next[2]) return false;
+              }
+
+              return updateType === "version-update:semver-patch" ||
+                  (updateType === "version-update:semver-minor" && previous[1] !== "0");
+          });
+
+          appendFileSync(process.env.GITHUB_OUTPUT, `eligible=${eligible}\n`);
+          if (!eligible) console.log("This update requires manual review.");
+          NODE
+      - name: Merge the verified pull request
+        if: steps.policy.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          current_base="$(gh pr view "$PR_URL" --json baseRefName --jq .baseRefName)"
+          if [ "$current_base" != "dev" ]; then
+              echo "The pull request no longer targets dev; skipping automatic merge."
+              exit 0
+          fi
+
+          gh pr merge --squash --match-head-commit "$PR_HEAD_SHA" "$PR_URL"
