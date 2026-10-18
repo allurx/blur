@@ -31,7 +31,7 @@ jobs:
         permissions:
             contents: write
             actions: read
-        uses: allurx/allurx-build/.github/workflows/maven-central-publish.yml@71684ece317c5344be9f5dae18f2512c88bc56b1 # v1.0.0
+        uses: allurx/allurx-build/.github/workflows/maven-central-publish.yml@79ef08b3ae6b3b124bb9208199df562fd8107353 # workflows-v2.0.0
         secrets: inherit
         with:
             tag: ${{ inputs.tag || github.ref_name }}
