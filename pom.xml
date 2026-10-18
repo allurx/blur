@@ -11,7 +11,7 @@ SPDX-License-Identifier: Apache-2.0
     <parent>
         <groupId>io.allurx</groupId>
         <artifactId>maven-parent</artifactId>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <relativePath/>
     </parent>
 
