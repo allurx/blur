@@ -104,6 +104,12 @@ void blur() {
 * 自定义条件实例会在调用之间共享，必须无状态或保证线程安全。
 * 对象遍历、容器支持和实例创建遵循 [annotation-parser](https://github.com/allurx/annotation-parser) 的规则。处理继承字段需要 `@Cascade(inherited = true)`；普通类的 `final` 和 `transient` 字段不会脱敏。
 
+### 从 6.x 升级
+
+7.x 的 `startOffset` 和 `endOffset` 从 UTF-16 代码单元改为 Unicode 码点。输入包含补充平面字符时，需要核对自定义偏移量；输出仍保持 `String.length()` 不变。
+
+`Blur.blur(input, typeToken)` 将 null 处理交给 annotation-parser：匹配的自定义解析器可以接收 null 输入，解析结果也会原样保留，包括 null。`typeToken` 为 null 时抛出 `NullPointerException`。原先依赖“解析器返回 null 时保留输入”的调用方，需要显式处理该策略。
+
 ### JPMS
 
 使用 JPMS 时，在 `module-info.java` 中向解析器开放私有字段所在的包：

@@ -103,6 +103,12 @@ In this example, constructing the `AnnotatedTypeToken` for the blurred objects i
 * Custom conditions are shared between calls and must be stateless or thread-safe.
 * Object traversal, container support, and instance creation follow [annotation-parser](https://github.com/allurx/annotation-parser). Inherited fields require `@Cascade(inherited = true)`; ordinary classes' final and transient fields are not masked.
 
+### Upgrading from 6.x
+
+Version 7 counts `startOffset` and `endOffset` in Unicode code points instead of UTF-16 code units. Review custom offsets for supplementary characters; output still preserves `String.length()`.
+
+`Blur.blur(input, typeToken)` now delegates null handling to annotation-parser: a supporting custom parser can receive null input and its returned value, including null, is preserved. A null `typeToken` throws `NullPointerException`. Callers that relied on retaining the original value when a parser returned null must handle that policy explicitly.
+
 ### JPMS
 
 For JPMS applications, open packages containing private fields to the parser in `module-info.java`:
