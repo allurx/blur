@@ -16,4 +16,4 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
-    uses: allurx/allurx-build/.github/workflows/maven-ci.yml@79ef08b3ae6b3b124bb9208199df562fd8107353 # workflows-v2.0.0
+    uses: allurx/allurx-build/.github/workflows/maven-ci.yml@f3cd85d5d435fb3093ad3c027f6788923aa802e7 # workflows-v2.0.0
